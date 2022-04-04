@@ -85,7 +85,25 @@ bool isSafe(int pid, int request[NUM_OF_RESOURCE_TYPES])
     return false;
 }
 
-//DONT RUN unless fixed!
+int* getRequest()
+{
+    int pid=0;
+    cin>>pid;
+    int* request = new int[NUM_OF_RESOURCE_TYPES];
+    //fill the request
+    //TODO @Khaled
+}
+
+void releaseResources()
+{
+    int pid=0;
+    cin>>pid;
+
+    //deallocate and fix other matrices
+    //TODO @Khaled
+}
+
+//DON'T RUN until fixed!
 void recover()
 {
     if (isSafe) return;
@@ -98,5 +116,16 @@ int main()
     greetingMessage();
     initDataStructures();
 
+    string command="";
+    while (cin>>command)
+    {
+        if (command == "RQ")
+            getRequest();
+
+        else if(command == "RL")
+            releaseResources();
+        else
+            return (0);
+    }
 
 }
