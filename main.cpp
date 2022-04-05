@@ -1,13 +1,15 @@
 #include <iostream>
+#include <vector>
 using namespace std;
 
-//Global variables and datastructures
+//Global variables and data structures
 int NUM_OF_RESOURCE_TYPES = 3;
 int NUM_OF_Processes = 3;
 int *available;
 int **maximum;
 int **allocation;
 int **need;
+
 //************************************
 
 
@@ -31,10 +33,8 @@ void initDataStructures()
     for(int i=0; i<NUM_OF_RESOURCE_TYPES; i++)
     {
         printf("R%d:",i);
-        int value=0;
         cin>>available[i];
     }
-
 
 
     cout<<"\n\n*** Initializing resources...\n";
@@ -83,27 +83,190 @@ void printMatrix(int** mat)
 {
     for (int i=0; i<NUM_OF_Processes; i++)
     {
+        cout<<"Row "<<i<<':';
         for (int j=0; j<NUM_OF_RESOURCE_TYPES; j++)
-            cout<<i<<":   "<<mat[i][j]<<" ";
+            cout<<mat[i][j]<<" ";
     }
     cout<<'\n';
 }
 
-bool isSafe(int pid, int request[NUM_OF_RESOURCE_TYPES])
+
+
+//copy sz blocks from src to dest
+void cpy(int* src, int* dest, int sz)
 {
-    //add request in the right place and then check using banker algorithm
-    //TODO @Islam
-    return false;
+    for(int i=0;i<sz;i++)
+    {
+        dest[i] = src[i];
+    }
 }
+
+//cpy for 2d
+void cpy2d(int** src, int** dest, int n, int m)
+{
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<m;j++)
+        {
+            dest[i][j] = src[i][j];
+        }
+    }
+}
+
+//allocate memory 1d
+int* allocate1d(int n)
+{
+    return new int[n];
+}
+
+//allocate memory 2d
+int** allocate2d(int n, int m)
+{
+    int** arr = new int*[n];
+    for(int i=0;i<n;i++)
+    {
+        arr[i] = new int[m];
+    }
+    return arr;
+}
+
+//release memory 1d
+void release1d(int* arr)
+{
+    delete[] arr;
+}
+
+//release memory 2d
+void release2d(int** arr, int n)
+{
+    for(int i=0;i<n;i++)
+    {
+        delete[] arr[i];
+    }
+    delete[] arr;
+}
+
+
+bool validSequenceOfProcesses(int** needMat, int** alloc, int* availableVector)
+{
+    int nop = NUM_OF_Processes;
+    int nor = NUM_OF_RESOURCE_TYPES;
+    //to keep track of calculated processes
+    bool* taken = new bool[nop];
+    for(int i=0;i<nop;i++) taken[i] = 0;
+    int currCnt = 0, oldCnt = -1;
+    //order of the sequence we are getting
+    vector<int> seq;
+    while(currCnt != oldCnt)
+    {
+        oldCnt = currCnt;
+        for(int i=0;i<nop;i++)
+        {
+            //if this process not taken then try to take it
+            if(!taken[i])
+            {
+                bool canBeTaken = 1;
+                for(int j=0;j<nor;j++)
+                {
+                    if(needMat[i][j] > availableVector[j])
+                    {
+                        canBeTaken = 0;
+                        break;
+                    }
+                }
+                if(canBeTaken)
+                {
+                    taken[i] = 1;
+                    for(int j=0;j<nor;j++)
+                    {
+                        availableVector[j] += alloc[i][j];
+                    }
+                    seq.push_back(i);
+                    currCnt++;
+                }
+            }
+        }
+    }
+    delete[] taken;
+/*
+    //debugging the order of sequence we got
+    cout<<"currCnt = "<<currCnt<<endl;
+    cout<<"order \n";
+    for(int i:seq){
+        cout<<i<<' ';
+    }
+    cout<<endl;
+*/
+    return currCnt == nop;
+}
+
+bool isSafe(int pid, int* request)
+{
+    //check if request > Need
+    for(int i=0;i<NUM_OF_RESOURCE_TYPES;i++)
+    {
+        if(request[i] > need[pid][i])
+        {
+            //process wants more than the claimed
+            return false;
+        }
+    }
+
+    //check if request > available
+    for(int i=0;i<NUM_OF_RESOURCE_TYPES;i++)
+    {
+        if(request[i] > available[i])
+        {
+            //can not be granted not enough available instances
+            return false;
+        }
+    }
+
+    //available = available-request
+    int* availableCpy = allocate1d(NUM_OF_RESOURCE_TYPES);
+    cpy(available, availableCpy, NUM_OF_RESOURCE_TYPES);
+    for(int i=0;i<NUM_OF_RESOURCE_TYPES;i++)
+    {
+        availableCpy[i] -= request[i];
+    }
+
+    //allocation of pid += request
+    int** allocationCpy = allocate2d(NUM_OF_Processes, NUM_OF_RESOURCE_TYPES);
+    cpy2d(allocation, allocationCpy, NUM_OF_Processes, NUM_OF_RESOURCE_TYPES);
+    for(int i=0;i<NUM_OF_RESOURCE_TYPES;i++)
+    {
+        allocationCpy[pid][i] += request[i];
+    }
+
+    //need of pid -= request
+    int** needCpy = allocate2d(NUM_OF_Processes, NUM_OF_RESOURCE_TYPES);
+    cpy2d(need, needCpy, NUM_OF_Processes, NUM_OF_RESOURCE_TYPES);
+    for(int i=0;i<NUM_OF_RESOURCE_TYPES;i++)
+    {
+        needCpy[pid][i] -= request[i];
+    }
+
+    //check for a valid sequence exists
+    bool state = validSequenceOfProcesses(needCpy, allocationCpy, availableCpy);
+
+    //release used memory
+    release1d(availableCpy);
+    release2d(allocationCpy, NUM_OF_Processes);
+    release2d(needCpy, NUM_OF_Processes);
+
+    return state;
+}
+
 
 int* getRequest()
 {
-    int pid=0;
+    int pid;
     cin>>pid;
     int* request = new int[NUM_OF_RESOURCE_TYPES];
     //fill the request
     //TODO @Khaled
 }
+
 
 void releaseResources()
 {
@@ -118,8 +281,10 @@ void recover()
     //TODO @Hagry
 }
 
+
 int main()
 {
+
     greetingMessage();
     initDataStructures();
 
@@ -134,5 +299,35 @@ int main()
         else
             return (0);
     }
+    return 0;
 
 }
+
+//don't touch it :)
+/*
+TEST:
+0 1 0
+2 0 0
+3 0 2
+2 1 1
+0 0 2
+7 4 3
+1 2 2
+6 0 0
+0 1 1
+4 3 1
+3 3 2
+
+TEST:
+0 0 1 2
+1 0 0 0
+1 3 5 4
+0 6 3 2
+0 0 1 4
+0 0 0 0
+0 7 5 0
+1 0 0 2
+0 0 2 0
+0 6 4 2
+1 5 2 0
+*/
