@@ -9,7 +9,6 @@ int *available;
 int **maximum;
 int **allocation;
 int **need;
-
 //************************************
 
 
@@ -22,7 +21,7 @@ void greetingMessage()
 
 void initDataStructures()
 {
-    cout<<"*** Initializing resources...\n";
+    cout<<"*** Initializing resources ***\n";
     cout<<"How many resources are in the system?\n";
     cin>>NUM_OF_RESOURCE_TYPES;
 
@@ -37,7 +36,7 @@ void initDataStructures()
     }
 
 
-    cout<<"\n\n*** Initializing resources...\n";
+    cout<<"\n\n*** Initializing resources ***\n";
     cout<<"How many processes are in the system?\n";
     cin>>NUM_OF_Processes;
 
@@ -77,7 +76,6 @@ void initDataStructures()
             need[i][j] = maximum[i][j] - allocation[i][j];
     }
 }
-
 
 void printMatrix(int** mat)
 {
@@ -145,7 +143,6 @@ void release2d(int** arr, int n)
     }
     delete[] arr;
 }
-
 
 bool validSequenceOfProcesses(int** needMat, int** alloc, int* availableVector)
 {
@@ -257,22 +254,39 @@ bool isSafe(int pid, int* request)
     return state;
 }
 
-
 int* getRequest()
 {
-    int pid;
-    cin>>pid;
     int* request = new int[NUM_OF_RESOURCE_TYPES];
+
     //fill the request
-    //TODO @Khaled
+    for (int i=0; i<NUM_OF_RESOURCE_TYPES; i++)
+    {
+        cin>>request[i];
+        //repeat the iteration if requesting a -ve number
+        if(request[i]<0) i--;
+    }
+    return request;
 }
 
 
-void releaseResources()
+void releaseResources(int pid)
 {
-    int pid=0;
-    cin>>pid;
+    int *released = new int[NUM_OF_RESOURCE_TYPES];
+    for (int i=0; i<NUM_OF_RESOURCE_TYPES; i++)
+    {
+        cin>>released[i];
+        //repeat the iteration if releasing a -ve number
+        if(released[i]<0) i--;
+    }
+
+    //add to available and remove from allocation
+    for (int i=0; i<NUM_OF_RESOURCE_TYPES; i++)
+    {
+        available[i]+= min(allocation[pid][i],released[i]);
+        allocation[pid][i] =max(0,allocation[pid][i] - released[i]);
+    }
 }
+
 //DON'T RUN until fixed!
 void recover()
 {
@@ -288,14 +302,23 @@ int main()
     greetingMessage();
     initDataStructures();
 
-    string command="";
+    string command;
     while (cin>>command)
     {
         if (command == "RQ")
-            getRequest();
+        {
+            int pid;
+            cin>>pid;
+            int *request = getRequest();
+            bool is_safe = isSafe(pid, request);
+        }
 
         else if(command == "RL")
-            releaseResources();
+        {
+            int pid=0;
+            cin>>pid;
+            releaseResources(pid);
+        }
         else
             return (0);
     }
