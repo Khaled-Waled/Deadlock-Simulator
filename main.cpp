@@ -64,18 +64,29 @@ void initDataStructures()
     {
         //fill maximum[][]
         cout<<"Process #"<<i<<" has maximum resources needs of: \n";
-        for (int j=0; i<NUM_OF_RESOURCE_TYPES; i++)
+        for (int j=0; j<NUM_OF_RESOURCE_TYPES; j++)
            cin>>maximum[i][j];
 
         //fill allocation[][]
         cout<<"\nProcess #"<<i<<" is already using resources of: \n";
-        for (int j=0; i<NUM_OF_RESOURCE_TYPES; i++)
+        for (int j=0; j<NUM_OF_RESOURCE_TYPES; j++)
             cin>>allocation[i][j];
 
         //fill need[][]
-        for (int j=0; i<NUM_OF_RESOURCE_TYPES; i++)
+        for (int j=0; j<NUM_OF_RESOURCE_TYPES; j++)
             need[i][j] = maximum[i][j] - allocation[i][j];
     }
+}
+
+
+void printMatrix(int** mat)
+{
+    for (int i=0; i<NUM_OF_Processes; i++)
+    {
+        for (int j=0; j<NUM_OF_RESOURCE_TYPES; j++)
+            cout<<i<<":   "<<mat[i][j]<<" ";
+    }
+    cout<<'\n';
 }
 
 bool isSafe(int pid, int request[NUM_OF_RESOURCE_TYPES])
@@ -98,11 +109,7 @@ void releaseResources()
 {
     int pid=0;
     cin>>pid;
-
-    //deallocate and fix other matrices
-    //TODO @Khaled
 }
-
 //DON'T RUN until fixed!
 void recover()
 {
