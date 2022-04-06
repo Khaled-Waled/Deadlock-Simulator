@@ -233,7 +233,14 @@ void releaseResources(int pid) {
     //add to available and remove from allocation
     for (int i = 0; i < NUM_OF_RESOURCE_TYPES; i++) {
         available[i] += min(allocation[pid][i], released[i]);
+        if (allocation[pid][i] < released[i])
+        {
+            cout<<"Warning:\nResource #"<<i<<" for pid= "<<pid<<" has less instances than the release request\n";
+            cout<<allocation[pid][i]<<" < "<< released[i]<<endl;
+        }
         allocation[pid][i] = max(0, allocation[pid][i] - released[i]);
+
+
     }
 }
 
@@ -307,8 +314,10 @@ int main() {
             if (allocated) {
                 cout << "allocated successfully\n";
                 recover();
-//                printMatrix(allocation);
-//                printAvailable();
+                cout<<"Allocation:\n";
+                printMatrix(allocation);
+                cout<<"Available:\n";
+                printAvailable();
             } else {
                 cout << "not enough resources\n";
             }
@@ -317,12 +326,33 @@ int main() {
             int pid = 0;
             cin >> pid;
             releaseResources(pid);
+            cout<<"Allocation:\n";
+            printMatrix(allocation);
+            cout<<"Available:\n";
+            printAvailable();
+
         } else
             return (0);
     }
     return 0;
 
 }
+
+
+
+/*
+    3
+    1 1 1
+    2
+    0 1 1
+    0 0 1
+    1 0 0
+    1 0 0
+    RQ 0 0 1 0
+    RL 0 0 1 1
+    RL 1 1 0 5
+
+ */
 
 //don't touch it :)
 /*
