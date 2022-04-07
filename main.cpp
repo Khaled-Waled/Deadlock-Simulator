@@ -143,7 +143,7 @@ void allocate(int pid, int *request) {
     }
 }
 
-bool isSafe(int **needMat, int **alloc, int *availableVector) {
+bool isSafe(int *availableVector) {
     int nop = NUM_OF_Processes;
     int nor = NUM_OF_RESOURCE_TYPES;
     //to keep track of calculated processes
@@ -159,7 +159,7 @@ bool isSafe(int **needMat, int **alloc, int *availableVector) {
             if (!finished[i]) {
                 bool canBeTaken = 1;
                 for (int j = 0; j < nor; j++) {
-                    if (needMat[i][j] > availableVector[j]) {
+                    if (need[i][j] > availableVector[j]) {
                         canBeTaken = 0;
                         break;
                     }
@@ -167,7 +167,7 @@ bool isSafe(int **needMat, int **alloc, int *availableVector) {
                 if (canBeTaken) {
                     finished[i] = 1;
                     for (int j = 0; j < nor; j++) {
-                        availableVector[j] += alloc[i][j];
+                        availableVector[j] += allocation[i][j];
                     }
                     seq.push_back(i);
                     currCnt++;
@@ -272,20 +272,14 @@ void recover() {
         int *availableCpy = allocate1d(NUM_OF_RESOURCE_TYPES);
         cpy(available, availableCpy, NUM_OF_RESOURCE_TYPES);
 
-        int **allocationCpy = allocate2d(NUM_OF_Processes, NUM_OF_RESOURCE_TYPES);
-        cpy2d(allocation, allocationCpy, NUM_OF_Processes, NUM_OF_RESOURCE_TYPES);
-
-        int **needCpy = allocate2d(NUM_OF_Processes, NUM_OF_RESOURCE_TYPES);
-        cpy2d(need, needCpy, NUM_OF_Processes, NUM_OF_RESOURCE_TYPES);
-
         //release used memory
 
-        if (isSafe(need, allocationCpy, availableCpy)) {
+        if (isSafe(availableCpy)) {
+            release1d(availableCpy);
             break;
         }
+
         release1d(availableCpy);
-        release2d(allocationCpy, NUM_OF_Processes);
-        release2d(needCpy, NUM_OF_Processes);
 
         int pEvicted = selectVictim();
         cout << "evicted process #" << pEvicted << "\n";
@@ -296,6 +290,13 @@ void printAvailable() {
     for (int r = 0; r < NUM_OF_RESOURCE_TYPES; r++)
         cout << available[r] << " ";
     cout << "\n";
+}
+
+void deinitDataStructures() {
+    release1d(available);
+    release2d(maximum, NUM_OF_Processes);
+    release2d(need, NUM_OF_Processes);
+    release2d(allocation, NUM_OF_Processes);
 }
 
 int main() {
@@ -332,8 +333,9 @@ int main() {
             printAvailable();
 
         } else
-            return (0);
+            break;
     }
+    deinitDataStructures();
     return 0;
 
 }
